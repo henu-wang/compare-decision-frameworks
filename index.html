@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Decision Frameworks - Side-by-Side Framework Comparison Tool</title>
+    <meta name="description" content="Compare decision-making frameworks side by side: SWOT, Pros-Cons, Decision Matrix, Pre-Mortem, Inversion, 10-10-10, Eisenhower Matrix, and more. Find the right framework for your situation.">
+    <meta property="og:title" content="Compare Decision Frameworks - Side-by-Side Comparison Tool">
+    <meta property="og:description" content="Interactive tool to compare decision frameworks side by side. SWOT, Decision Matrix, Pre-Mortem, and 8 more.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://henu-wang.github.io/compare-decision-frameworks/">
+    <link rel="canonical" href="https://henu-wang.github.io/compare-decision-frameworks/">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:'#4c1d95',accent:'#8b5cf6'}}}}</script>
+    <style>
+        .fw-btn.selected { background: #8b5cf6; color: white; border-color: #8b5cf6; }
+        .compare-table th { position: sticky; top: 0; z-index: 1; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+    <header class="bg-primary text-white">
+        <nav class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="index.html" class="text-lg font-bold">Compare Frameworks</a>
+            <a href="https://keeprule.com/en/scenarios" class="text-sm text-purple-200 hover:text-white" target="_blank" rel="noopener">More at KeepRule &rarr;</a>
+        </nav>
+    </header>
+
+    <main class="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-primary mb-3">Compare Decision Frameworks</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Select 2-3 frameworks below to see a detailed side-by-side comparison. Find the best approach for your specific decision.</p>
+        </div>
+
+        <div class="mb-6">
+            <p class="text-sm font-medium text-gray-500 mb-3">Select 2-3 frameworks to compare: <span id="selCount" class="text-accent font-bold">0</span>/3</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="fwGrid"></div>
+        </div>
+
+        <button id="compareBtn" onclick="compare()" class="w-full bg-accent text-white py-3 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>Compare Selected Frameworks</button>
+
+        <div id="result" class="hidden mt-8">
+            <div class="overflow-x-auto">
+                <table class="compare-table w-full border-collapse" id="compareTable"></table>
+            </div>
+
+            <div class="mt-6 grid md:grid-cols-3 gap-4" id="detailCards"></div>
+
+            <button onclick="resetSelection()" class="mt-6 w-full border border-gray-300 text-gray-600 py-3 rounded-lg font-medium hover:bg-gray-100 transition">Compare Different Frameworks</button>
+        </div>
+
+        <div class="mt-10 bg-purple-50 rounded-xl p-8 border border-purple-100 text-center">
+            <h2 class="text-xl font-bold mb-2">Apply These Frameworks to Real Decisions</h2>
+            <p class="text-gray-600 text-sm mb-4">KeepRule organizes decision principles from master investors into actionable scenarios. See how frameworks like inversion and pre-mortem are applied by Buffett, Munger, and Dalio.</p>
+            <div class="flex flex-wrap justify-center gap-3">
+                <a href="https://keeprule.com/en/scenarios" class="inline-block bg-accent text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition" target="_blank" rel="noopener">Decision Scenarios</a>
+                <a href="https://keeprule.com/en/principles" class="inline-block border border-accent text-accent px-5 py-2 rounded-lg text-sm font-medium hover:bg-purple-100 transition" target="_blank" rel="noopener">Decision Principles</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-gray-200 py-6 mt-8">
+        <div class="max-w-6xl mx-auto px-4 text-center text-sm text-gray-400">
+            <p>Powered by <a href="https://keeprule.com/en/" class="text-accent hover:underline" target="_blank" rel="noopener">KeepRule</a></p>
+        </div>
+    </footer>
+
+    <script>
+    const frameworks = {
+        "swot": {
+            name: "SWOT Analysis",
+            icon: "&#9733;",
+            bestFor: "Strategic planning, business decisions",
+            complexity: "Low",
+            time: "30-60 min",
+            groupSize: "Solo or team",
+            type: "Qualitative",
+            steps: ["List internal Strengths","List internal Weaknesses","List external Opportunities","List external Threats","Cross-reference to find strategies"],
+            pros: ["Easy to understand and use","Good for brainstorming","Covers both internal and external factors"],
+            cons: ["Can be superficial without discipline","No built-in prioritization","Subjective: different people see different items"],
+            when: "Early-stage strategic thinking, business planning, career assessment",
+            avoid: "When you need quantitative comparison or have well-defined options",
+            origin: "Albert Humphrey, Stanford Research Institute, 1960s"
+        },
+        "pros-cons": {
+            name: "Pros & Cons List",
+            icon: "&#9744;",
+            bestFor: "Quick decisions, simple choices",
+            complexity: "Very Low",
+            time: "5-15 min",
+            groupSize: "Solo",
+            type: "Qualitative",
+            steps: ["Define the decision","List all pros (advantages)","List all cons (disadvantages)","Weigh the relative importance","Decide based on balance"],
+            pros: ["Extremely simple","Fast to execute","Forces consideration of both sides"],
+            cons: ["No weighting mechanism","Treats all factors as equal","Vulnerable to framing effects"],
+            when: "Quick, low-stakes decisions or as a first pass before deeper analysis",
+            avoid: "Complex multi-option decisions or high-stakes irreversible choices",
+            origin: "Benjamin Franklin described a version in a 1772 letter"
+        },
+        "decision-matrix": {
+            name: "Weighted Decision Matrix",
+            icon: "&#9638;",
+            bestFor: "Multi-criteria comparison of options",
+            complexity: "Medium",
+            time: "45-90 min",
+            groupSize: "Solo or small team",
+            type: "Quantitative",
+            steps: ["List all options","Define evaluation criteria","Assign weights to criteria (1-5)","Score each option on each criterion (1-10)","Calculate weighted totals","Compare results"],
+            pros: ["Objective and quantitative","Handles multiple criteria with different importance","Results are transparent and defensible"],
+            cons: ["Requires clear criteria upfront","Garbage in, garbage out (scores are still subjective)","Can create false precision"],
+            when: "Comparing 3+ options across multiple factors (job offers, vendors, investments)",
+            avoid: "Highly uncertain situations where key variables can't be meaningfully scored",
+            origin: "Operations research, formalized by Stuart Pugh"
+        },
+        "pre-mortem": {
+            name: "Pre-Mortem Analysis",
+            icon: "&#9760;",
+            bestFor: "Risk identification for major decisions",
+            complexity: "Medium",
+            time: "30-60 min",
+            groupSize: "Team (3+)",
+            type: "Qualitative",
+            steps: ["Assume the decision has been made and has FAILED","Each person independently lists why it failed","Share and compile all failure reasons","Identify the most likely and dangerous failure modes","Create mitigation plans for top risks"],
+            pros: ["Overcomes optimism bias","Gives permission to voice concerns","Surfaces risks hidden by group dynamics"],
+            cons: ["Can increase anxiety if not facilitated well","Requires psychological safety","May be seen as negative thinking"],
+            when: "High-stakes, irreversible decisions, especially in group settings",
+            avoid: "Trivial decisions or when the team is already overly pessimistic",
+            origin: "Gary Klein, psychologist, 1989"
+        },
+        "inversion": {
+            name: "Inversion",
+            icon: "&#8634;",
+            bestFor: "Avoiding failure, problem-solving",
+            complexity: "Low-Medium",
+            time: "15-30 min",
+            groupSize: "Solo or team",
+            type: "Qualitative",
+            steps: ["State your goal","Invert: how would I guarantee failure?","List all failure modes comprehensively","Create plan that avoids each failure mode","Combine with forward thinking for full strategy"],
+            pros: ["Bypasses blind spots","Simplifies complex problems","Pairs well with any other framework"],
+            cons: ["Doesn't generate positive strategies on its own","Can be pessimistic without forward thinking balance","Requires honest, creative thinking about failure"],
+            when: "Any important decision, especially where downside protection matters",
+            avoid: "Situations requiring pure creative generation with no constraints",
+            origin: "Carl Jacobi (mathematician), popularized by Charlie Munger"
+        },
+        "ten-ten-ten": {
+            name: "10-10-10 Rule",
+            icon: "&#9202;",
+            bestFor: "Emotional decisions, time-perspective clarity",
+            complexity: "Very Low",
+            time: "5-10 min",
+            groupSize: "Solo",
+            type: "Qualitative",
+            steps: ["State the decision","How will I feel about this in 10 minutes?","How will I feel about this in 10 months?","How will I feel about this in 10 years?","Let the long-term perspective guide you"],
+            pros: ["Extremely fast and intuitive","Breaks emotional urgency","Reveals true importance vs perceived urgency"],
+            cons: ["Not rigorous for complex decisions","Feelings are predictions, which can be wrong","Doesn't help with analysis, only perspective"],
+            when: "Emotionally charged decisions, when you feel pressured to act quickly",
+            avoid: "Complex analytical decisions requiring data and multi-factor comparison",
+            origin: "Suzy Welch, journalist and author"
+        },
+        "eisenhower": {
+            name: "Eisenhower Matrix",
+            icon: "&#9638;",
+            bestFor: "Time management, prioritization",
+            complexity: "Low",
+            time: "10-20 min",
+            groupSize: "Solo",
+            type: "Qualitative",
+            steps: ["List all tasks/decisions pending","Categorize each: Urgent? Important?","Quadrant 1 (Urgent+Important): Do now","Quadrant 2 (Important, Not Urgent): Schedule","Quadrant 3 (Urgent, Not Important): Delegate","Quadrant 4 (Neither): Eliminate"],
+            pros: ["Simple 2x2 framework","Forces prioritization","Highlights the important-not-urgent quadrant (where growth happens)"],
+            cons: ["Binary classification can oversimplify","Urgency is often subjective","Doesn't help with HOW to decide, only WHAT to focus on"],
+            when: "Overwhelmed with competing priorities, need to triage quickly",
+            avoid: "Evaluating a single complex decision with multiple factors",
+            origin: "Dwight Eisenhower, 34th US President"
+        },
+        "second-order": {
+            name: "Second-Order Thinking",
+            icon: "&#8649;",
+            bestFor: "Strategic decisions, seeing consequences",
+            complexity: "Medium-High",
+            time: "30-60 min",
+            groupSize: "Solo or small team",
+            type: "Qualitative",
+            steps: ["Identify first-order consequences of the decision","For each: ask 'And then what?'","Map second-order consequences","For key ones: ask 'And then what?' again (third-order)","Identify feedback loops (reinforcing or balancing)","Evaluate the full chain of consequences"],
+            pros: ["Reveals hidden effects others miss","Provides genuine competitive advantage","Considers systemic effects and feedback"],
+            cons: ["Time-intensive","Can spiral into speculation at higher orders","Requires disciplined thinking"],
+            when: "Strategic business decisions, policy analysis, major investments",
+            avoid: "Routine daily decisions, time-critical emergencies",
+            origin: "Howard Marks (investor), building on systems thinking"
+        },
+        "circle-competence": {
+            name: "Circle of Competence",
+            icon: "&#9711;",
+            bestFor: "Investment decisions, self-assessment",
+            complexity: "Low",
+            time: "Ongoing",
+            groupSize: "Solo",
+            type: "Meta-framework",
+            steps: ["Honestly assess domains of genuine expertise","Map the boundaries - where does expertise end?","For this decision: am I inside or outside?","If inside: proceed with appropriate analysis","If outside: seek expert input or pass entirely"],
+            pros: ["Prevents overreach into unknown domains","Simple yet profound discipline","Avoids the most costly mistakes"],
+            cons: ["Hard to assess boundaries honestly (Dunning-Kruger)","Can be used as excuse to stay too narrow","Boundaries shift over time, requiring constant reassessment"],
+            when: "Before any major investment or business commitment",
+            avoid: "Routine decisions within well-known domains",
+            origin: "Warren Buffett and Charlie Munger"
+        },
+        "bayesian": {
+            name: "Bayesian Updating",
+            icon: "&#8494;",
+            bestFor: "Evolving decisions under uncertainty",
+            complexity: "High",
+            time: "Ongoing",
+            groupSize: "Solo",
+            type: "Quantitative",
+            steps: ["Establish a prior probability (your initial estimate)","Identify new evidence","Assess: how likely is this evidence if hypothesis is TRUE?","Assess: how likely is this evidence if hypothesis is FALSE?","Calculate updated (posterior) probability","Repeat as new evidence arrives"],
+            pros: ["Rigorous framework for updating beliefs","Prevents both under- and over-reaction to new info","Quantifies uncertainty explicitly"],
+            cons: ["Choosing priors can be subjective","Mathematically intimidating","Overkill for simple decisions"],
+            when: "Ongoing analysis with new data arriving (investment thesis tracking, medical decisions)",
+            avoid: "One-time simple decisions, situations with no meaningful probability estimates",
+            origin: "Thomas Bayes, 18th-century statistician"
+        }
+    };
+
+    let selected = [];
+
+    function renderGrid() {
+        const grid = document.getElementById('fwGrid');
+        grid.innerHTML = Object.entries(frameworks).map(([key, fw]) => `
+            <button onclick="toggleFw('${key}')" class="fw-btn border-2 border-gray-200 rounded-xl py-3 px-3 text-left hover:border-accent transition ${selected.includes(key)?'selected':''}" data-fw="${key}">
+                <div class="text-xl mb-1">${fw.icon}</div>
+                <div class="font-medium text-sm leading-tight">${fw.name}</div>
+                <div class="text-xs text-gray-500 mt-0.5">${fw.bestFor.split(',')[0]}</div>
+            </button>
+        `).join('');
+        document.getElementById('selCount').textContent = selected.length;
+        document.getElementById('compareBtn').disabled = selected.length < 2;
+    }
+
+    function toggleFw(key) {
+        if (selected.includes(key)) {
+            selected = selected.filter(k => k !== key);
+        } else if (selected.length < 3) {
+            selected.push(key);
+        }
+        renderGrid();
+    }
+
+    function compare() {
+        const fws = selected.map(k => frameworks[k]);
+
+        // Build comparison table
+        const rows = [
+            {label:"Best For",key:"bestFor"},
+            {label:"Complexity",key:"complexity"},
+            {label:"Time Required",key:"time"},
+            {label:"Group Size",key:"groupSize"},
+            {label:"Type",key:"type"},
+            {label:"When to Use",key:"when"},
+            {label:"When to Avoid",key:"avoid"},
+            {label:"Origin",key:"origin"}
+        ];
+
+        let tableHTML = `<thead><tr><th class="bg-primary text-white text-left py-3 px-4 text-sm rounded-tl-lg">Attribute</th>`;
+        fws.forEach((fw,i) => {
+            tableHTML += `<th class="bg-primary text-white py-3 px-4 text-sm ${i===fws.length-1?'rounded-tr-lg':''}">${fw.name}</th>`;
+        });
+        tableHTML += `</tr></thead><tbody>`;
+        rows.forEach((row, ri) => {
+            tableHTML += `<tr class="${ri%2?'bg-gray-50':'bg-white'}"><td class="py-3 px-4 text-sm font-medium text-gray-600 border-b border-gray-100">${row.label}</td>`;
+            fws.forEach(fw => {
+                tableHTML += `<td class="py-3 px-4 text-sm border-b border-gray-100">${fw[row.key]}</td>`;
+            });
+            tableHTML += `</tr>`;
+        });
+
+        // Steps comparison
+        tableHTML += `<tr class="bg-white"><td class="py-3 px-4 text-sm font-medium text-gray-600 border-b border-gray-100">Steps</td>`;
+        fws.forEach(fw => {
+            tableHTML += `<td class="py-3 px-4 text-sm border-b border-gray-100"><ol class="list-decimal pl-4 space-y-1">${fw.steps.map(s=>`<li>${s}</li>`).join('')}</ol></td>`;
+        });
+        tableHTML += `</tr>`;
+
+        // Pros
+        tableHTML += `<tr class="bg-gray-50"><td class="py-3 px-4 text-sm font-medium text-green-700 border-b border-gray-100">Strengths</td>`;
+        fws.forEach(fw => {
+            tableHTML += `<td class="py-3 px-4 text-sm border-b border-gray-100"><ul class="space-y-1">${fw.pros.map(p=>`<li class="text-green-700">+ ${p}</li>`).join('')}</ul></td>`;
+        });
+        tableHTML += `</tr>`;
+
+        // Cons
+        tableHTML += `<tr class="bg-white"><td class="py-3 px-4 text-sm font-medium text-red-600">Limitations</td>`;
+        fws.forEach(fw => {
+            tableHTML += `<td class="py-3 px-4 text-sm"><ul class="space-y-1">${fw.cons.map(c=>`<li class="text-red-600">- ${c}</li>`).join('')}</ul></td>`;
+        });
+        tableHTML += `</tr>`;
+
+        tableHTML += `</tbody>`;
+        document.getElementById('compareTable').innerHTML = tableHTML;
+
+        // Detail cards
+        document.getElementById('detailCards').innerHTML = fws.map(fw => `
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+                <h3 class="font-bold mb-2">${fw.icon} ${fw.name}</h3>
+                <p class="text-sm text-gray-600 mb-3">${fw.bestFor}</p>
+                <a href="https://keeprule.com/en/scenarios" class="text-sm text-accent hover:underline" target="_blank" rel="noopener">See scenarios on KeepRule &rarr;</a>
+            </div>
+        `).join('');
+
+        document.getElementById('result').classList.remove('hidden');
+        document.getElementById('result').scrollIntoView({behavior:'smooth'});
+    }
+
+    function resetSelection() {
+        selected = [];
+        document.getElementById('result').classList.add('hidden');
+        renderGrid();
+        window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    renderGrid();
+    </script>
+</body>
+</html>
